@@ -1,0 +1,32 @@
+<h1>Hello from {{ name }}!</h1>
+<a target="_blank" href="https://angular.dev/overview">
+    Learn more about Angular
+</a>
+
+<img [src]="hello" alt="{{ alternativeText }}" [aria-tabindex]="(1 + 1) / 4">
+
+
+
+<div class="form-group">
+    <label for="skill">Skill</label>
+    <select class="form-control" id="skill" required>
+        @for(skill of skills; track $index) {
+            <option [value]="skill">{{ skill }}</option>
+        }
+    </select>
+</div>
+
+<vwc-slotted-components></vwc-slotted-components>
+
+<vwc-named-slots title="{{ 'narrow' + 0 }}" subtitle="Hero">
+    <span slot="title">Web components</span>
+    <span slot="subtitle">Testing</span>
+</vwc-named-slots>
+
+<vwc-slotted>Hello there testing</vwc-slotted>
+
+<div className="card">
+    <button [action]="count + 1">
+    count is {{ count }}
+    </button>
+</div>
