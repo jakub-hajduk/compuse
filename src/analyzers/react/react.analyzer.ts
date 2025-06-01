@@ -1,9 +1,10 @@
-import { parse as babelParse } from '@babel/parser';
-import _traverse from '@babel/traverse';
-import type { JSXAttribute, Node } from '@babel/types';
-import type { Analyzer, AttributeUsage, SlotUsage } from '../analyzer';
-const traverse = _traverse.default;
 import { generate } from '@babel/generator';
+import { parse as babelParse } from '@babel/parser';
+import _traverse, { type NodePath } from '@babel/traverse';
+import type { JSXAttribute } from '@babel/types';
+import type { Analyzer, AttributeUsage, SlotUsage } from '../analyzer';
+
+const traverse = (_traverse as any).default || _traverse;
 
 export const reactAnalyzer: Analyzer<any> = {
   name: 'ReactAnalyzer',
@@ -14,16 +15,15 @@ export const reactAnalyzer: Analyzer<any> = {
     path.endsWith('.ts'),
   getElementName: (node: any) => node.openingElement.name.name,
   parseTemplateCode(code: string) {
-    const ast = babelParse(code, {
+    return babelParse(code, {
       sourceType: 'module',
       plugins: ['jsx', 'typescript'],
+      errorRecovery: true,
     });
-
-    return ast;
   },
   customVisit(node, callback) {
     traverse(node, {
-      JSXElement(path) {
+      JSXElement(path: NodePath) {
         callback(path.node);
       },
     });

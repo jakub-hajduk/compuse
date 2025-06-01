@@ -7,7 +7,9 @@ config();
 
 process.env.NODE_OPTIONS = '--import tsx';
 
-const files = glob.sync('**/*.test.ts', { ignore: 'node_modules/**' });
+const files = glob.sync('**/*.test.ts', {
+  ignore: 'node_modules/**',
+});
 
 run({ files, concurrency: true, watch: true })
   .compose(spec)

@@ -56,7 +56,9 @@ export const vueAnalyzer: Analyzer<ElementNode> = {
     // Slots
     if (node.children) {
       for (const children of node.children) {
-        const slotProp = children.props?.find((prop) => prop.name === 'slot');
+        const slotProp = (children as any).props?.find(
+          (prop: any) => prop.name === 'slot',
+        );
         let name = get(slotProp, 'value.content');
         const fragment = get(children, 'loc.source');
         name ??= get(slotProp, 'arg.content');

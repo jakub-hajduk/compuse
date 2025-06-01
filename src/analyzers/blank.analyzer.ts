@@ -1,13 +1,13 @@
-import type { Analyzer, AttributeUsage, SlotUsage } from '../analyzer';
+import type { Analyzer, AttributeUsage, SlotUsage } from './analyzer';
 
 export const frameworkAnalyzer: Analyzer<any> = {
   name: '<...>Analyzer',
-  match: (path: string, pkg: object) => true,
-  getElementName: (node: any) => '',
-  parse(code: string) {
+  match: (_path: string, _pkg: object) => true,
+  getElementName: (_node: any) => '',
+  parseTemplateCode(_code: string) {
     return {};
   },
-  extract(node) {
+  extract(_node: any) {
     const component = '';
     const attributes: AttributeUsage[] = [];
     const slots: SlotUsage[] = [];

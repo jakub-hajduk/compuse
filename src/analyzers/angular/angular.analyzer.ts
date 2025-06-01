@@ -1,18 +1,10 @@
 import {
   type TmplAstBoundAttribute,
-  TmplAstBoundText,
-  TmplAstElement,
-  TmplAstTemplate,
-  TmplAstText,
   type TmplAstTextAttribute,
   parseTemplate,
 } from '@angular/compiler';
 import { get } from 'get-wild';
-import {
-  type PropertyAssignment,
-  ScriptTarget,
-  createSourceFile,
-} from 'typescript';
+import { ScriptTarget, createSourceFile } from 'typescript';
 import type {
   Analyzer,
   AttributeUsage,
@@ -41,7 +33,7 @@ export function mightBeAngularTemplate(code: string): boolean {
 const tryParseTemplate = (template: string) => {
   try {
     const ast = parseTemplate(template, '');
-    if (ast.errors?.length) throw null;
+    if (ast.errors?.length) return {};
     return { children: ast.nodes };
   } catch {}
 };
