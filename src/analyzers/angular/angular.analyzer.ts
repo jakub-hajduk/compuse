@@ -5,12 +5,7 @@ import {
 } from '@angular/compiler';
 import { get } from 'get-wild';
 import { ScriptTarget, createSourceFile } from 'typescript';
-import type {
-  Analyzer,
-  AttributeUsage,
-  ComponentUsageExtract,
-  SlotUsage,
-} from '../analyzer';
+import type { Analyzer, AttributeUsage, SlotUsage } from '../analyzer';
 
 export function mightBeAngularTemplate(code: string): boolean {
   const isProbablyTypeScript = /^(import|export|@Component|class|\s)*\s/.test(
@@ -41,13 +36,11 @@ const tryParseTemplate = (template: string) => {
 export const angularAnalyzer: Analyzer<any> = {
   name: 'angularAnalyzer',
 
-  match: (path: string) => {
-    return path.endsWith('component.html') || path.endsWith('component.ts');
+  shouldAnalyze() {
+    return true;
   },
 
-  getElementName: (node) => node.name,
-
-  extractTemplateCode(code: string) {
+  extractTemplate(code: string) {
     if (mightBeAngularTemplate(code)) return code;
 
     const componentAst = createSourceFile(
@@ -72,16 +65,21 @@ export const angularAnalyzer: Analyzer<any> = {
     return templateProperty.initializer?.rawText || '';
   },
 
-  parseTemplateCode(code: string) {
+  parseCode(code: string) {
     return tryParseTemplate(code);
   },
-  extract(node) {
-    const component = node.name;
-    if (!component) return;
-    const attributes: AttributeUsage[] = [];
-    const slots: SlotUsage[] = [];
 
-    // Attributes
+  shouldExtract(node) {
+    return node.name;
+  },
+
+  extractName(node) {
+    return node.name;
+  },
+
+  extractAttributes(node) {
+    const attributes: AttributeUsage[] = [];
+
     for (const attribute of node.attributes || []) {
       const name = attribute.name;
       const value = attribute.value;
@@ -103,7 +101,12 @@ export const angularAnalyzer: Analyzer<any> = {
       });
     }
 
-    // Slots
+    return attributes;
+  },
+
+  extractSlots(node) {
+    const slots: SlotUsage[] = [];
+
     for (const child of node.children || []) {
       const slot =
         child.attributes?.find(
@@ -127,14 +130,13 @@ export const angularAnalyzer: Analyzer<any> = {
       });
     }
 
+    return slots;
+  },
+
+  extractLines(node) {
     return {
-      component,
-      attributes,
-      slots,
-      lines: {
-        start: node.sourceSpan?.start?.line || 0,
-        end: node.sourceSpan?.end?.line || 0,
-      },
-    } as ComponentUsageExtract;
+      start: node.sourceSpan?.start?.line || 0,
+      end: node.sourceSpan?.end?.line || 0,
+    };
   },
 };

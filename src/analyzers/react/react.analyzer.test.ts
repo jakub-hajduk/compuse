@@ -12,9 +12,9 @@ function App() {
 }
       `;
 
-      const result = await analyzeCode(template, reactAnalyzer);
+      const result = analyzeCode(template, reactAnalyzer);
 
-      strictEqual(result?.length, 1);
+      strictEqual(result.length, 1);
       strictEqual(result[0].component, 'TestButton');
       strictEqual(result[0].attributes.length, 2);
 
@@ -35,7 +35,7 @@ function App() {
       const template =
         '<TestInput disabled={true} required={false}>Input field</TestInput>';
 
-      const result = await analyzeCode(template, reactAnalyzer);
+      const result = analyzeCode(template, reactAnalyzer);
 
       strictEqual(result?.length, 1);
       strictEqual(result[0].component, 'TestInput');
@@ -65,7 +65,7 @@ function App() {
 }
       `;
 
-      const result = await analyzeCode(template, reactAnalyzer);
+      const result = analyzeCode(template, reactAnalyzer);
 
       strictEqual(result?.length, 1);
       strictEqual(result[0].component, 'TestButton');
@@ -91,7 +91,7 @@ function App() {
 }
       `;
 
-      const result = await analyzeCode(template, reactAnalyzer);
+      const result = analyzeCode(template, reactAnalyzer);
 
       strictEqual(result?.length, 1);
       strictEqual(result[0].component, 'TestBadge');
@@ -117,7 +117,7 @@ function App() {
 }
       `;
 
-      const result = await analyzeCode(template, reactAnalyzer);
+      const result = analyzeCode(template, reactAnalyzer);
 
       strictEqual(result?.length, 1);
       strictEqual(result[0].component, 'TestCard');
@@ -155,7 +155,7 @@ function App() {
 }
       `;
 
-      const result = await analyzeCode(template, reactAnalyzer);
+      const result = analyzeCode(template, reactAnalyzer);
 
       // Filter for just the web component
       const webComponent = result?.find(
@@ -187,7 +187,7 @@ function App() {
 }
       `;
 
-      const result = await analyzeCode(template, reactAnalyzer);
+      const result = analyzeCode(template, reactAnalyzer);
 
       // Filter for just the web component
       const webComponent = result?.find(
@@ -226,7 +226,7 @@ function App() {
 }
       `;
 
-      const result = await analyzeCode(template, reactAnalyzer);
+      const result = analyzeCode(template, reactAnalyzer);
 
       // Filter for just the web component
       const webComponent = result?.find(
@@ -254,7 +254,7 @@ function App() {
 }
       `;
 
-      const result = await analyzeCode(template, reactAnalyzer);
+      const result = analyzeCode(template, reactAnalyzer);
 
       // Filter for TestLayout component
       const webComponent = result?.find(
@@ -278,7 +278,7 @@ function App() {
       </TestModal>
       `;
 
-      const result = await analyzeCode(template, reactAnalyzer);
+      const result = analyzeCode(template, reactAnalyzer);
 
       // Filter for just the web component
       const webComponent = result?.find(
@@ -308,7 +308,7 @@ function App() {
       </TestList>
       `;
 
-      const result = await analyzeCode(template, reactAnalyzer);
+      const result = analyzeCode(template, reactAnalyzer);
 
       // Filter for just the web component
       const webComponent = result?.find(
@@ -339,7 +339,7 @@ function App() {
 }
       `;
 
-      const result = await analyzeCode(template, reactAnalyzer);
+      const result = analyzeCode(template, reactAnalyzer);
 
       // Should find both TestProvider and TestCard
       const provider = result?.find(
@@ -354,50 +354,6 @@ function App() {
   });
 
   describe('Complex scenarios', async () => {
-    it('should extract multiple components with mixed features', async () => {
-      const template = `
-function App() {
-  return (
-    <>
-      <TestHeader title={pageTitle}>
-        <div slot="actions">
-          <TestButton variant="primary">Save</TestButton>
-        </div>
-      </TestHeader>
-      
-      <TestMain>
-        <TestCard elevated={true}>
-          <h3 slot="title">Card Title</h3>
-          <p>Card content</p>
-        </TestCard>
-      </TestMain>
-    </>
-  );
-}
-      `;
-
-      // try {
-      const result = await analyzeCode(template, reactAnalyzer);
-
-      // }catch(e) {
-      //   console.log( e )
-      // }
-
-      // Filter for web components only
-      // const webComponents = result?.filter((comp) =>
-      //   comp.component.startsWith('Test'),
-      // );
-
-      //ok(webComponents);
-      //ok(webComponents.length >= 3); // Should find TestButton, TestMain, TestCard
-
-      // Check if we can find the expected components
-      // const componentNames = webComponents.map(c => c.component);
-      // ok(componentNames.includes('TestButton'));
-      // ok(componentNames.includes('TestMain'));
-      // ok(componentNames.includes('TestCard'));
-    });
-
     it('should handle empty components', async () => {
       const template = `
 function App() {
@@ -405,7 +361,7 @@ function App() {
 }
       `;
 
-      const result = await analyzeCode(template, reactAnalyzer);
+      const result = analyzeCode(template, reactAnalyzer);
 
       strictEqual(result?.length, 1);
       strictEqual(result[0].component, 'TestDivider');
@@ -424,7 +380,7 @@ function App() {
 }
       `;
 
-      const result = await analyzeCode(template, reactAnalyzer);
+      const result = analyzeCode(template, reactAnalyzer);
 
       // Filter for just the web component
       const webComponent = result?.find(
@@ -453,7 +409,7 @@ function App({ title, disabled }: Props) {
 }
       `;
 
-      const result = await analyzeCode(template, reactAnalyzer);
+      const result = analyzeCode(template, reactAnalyzer);
 
       // Filter for TestComponent only
       const testComponent = result?.find(
@@ -508,7 +464,7 @@ function App() {
 }
       `;
 
-      const result = await analyzeCode(template, reactAnalyzer);
+      const result = analyzeCode(template, reactAnalyzer);
 
       // Filter for web components only
       const webComponents = result?.filter((comp) =>

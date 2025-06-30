@@ -7,7 +7,8 @@ import {
 } from '@vue/compiler-dom';
 import { parse as vueParse } from '@vue/compiler-sfc';
 import { get } from '../../utils/get';
-import type { Analyzer, AttributeUsage, SlotUsage } from '../analyzer';
+import type { Analyzer } from '../analyzer';
+import type { AttributeUsage, SlotUsage } from '../analyzer';
 
 const isDirectiveProp = (
   node: AttributeNode | DirectiveNode,
@@ -18,19 +19,24 @@ const isAttributeProp = (
 
 export const vueAnalyzer: Analyzer<ElementNode> = {
   name: 'VueAnalyzer',
-  match: (path: string) => path.endsWith('.vue'),
-  getElementName: (node: ElementNode) => node.tag,
-  parseTemplateCode(code: string) {
+
+  parseCode(code) {
     const { descriptor } = vueParse(code);
     if (!descriptor.template?.ast) throw 'No template found!';
     return descriptor.template?.ast as any as ElementNode;
   },
-  extract(node: ElementNode) {
-    if (node.tagType !== ElementTypes.COMPONENT) return;
-    const attributes: AttributeUsage[] = [];
-    const slots: SlotUsage[] = [];
 
-    // Attributes
+  shouldExtract(node) {
+    return (
+      node.type === NodeTypes.ELEMENT && node.tagType === ElementTypes.COMPONENT
+    );
+  },
+
+  extractName: (node) => node.tag,
+
+  extractAttributes(node) {
+    const attributes: AttributeUsage[] = [];
+
     if (node.props && node.props.length > 0) {
       for (const prop of node.props) {
         if (isAttributeProp(prop)) {
@@ -53,7 +59,12 @@ export const vueAnalyzer: Analyzer<ElementNode> = {
       }
     }
 
-    // Slots
+    return attributes;
+  },
+
+  extractSlots(node) {
+    const slots: SlotUsage[] = [];
+
     if (node.children) {
       for (const children of node.children) {
         const slotProp = (children as any).props?.find(
@@ -71,14 +82,13 @@ export const vueAnalyzer: Analyzer<ElementNode> = {
       }
     }
 
+    return slots;
+  },
+
+  extractLines(node) {
     return {
-      component: node.tag,
-      attributes,
-      slots,
-      lines: {
-        start: node.loc.start.line,
-        end: node.loc.end.line,
-      },
+      start: node.loc.start.line,
+      end: node.loc.end.line,
     };
   },
 };

@@ -1,45 +1,72 @@
 import type {
   Analyzer,
+  AttributeUsage,
   ComponentUsage,
-  ComponentUsageExtract,
+  EventUsage,
+  Lines,
+  SlotUsage,
   VisitFn,
 } from '../analyzers/analyzer';
 import { deindent } from '../utils/deindent';
 import { visit } from './visit';
 
-export async function analyzeCode(
+const isFunction = (value: any): value is (...args: any[]) => any =>
+  typeof value === 'function';
+
+export function analyzeCode(
   code: string,
   analyzer: Analyzer<any>,
-): Promise<ComponentUsage[] | undefined> {
+): ComponentUsage[] {
+  const output: ComponentUsage[] = [];
   let templateCode = code;
 
-  if (typeof analyzer.extractTemplateCode === 'function') {
-    templateCode = await Promise.resolve(analyzer.extractTemplateCode(code));
+  if (isFunction(analyzer.extractTemplate)) {
+    templateCode = analyzer.extractTemplate(code);
   }
 
-  const AST = await Promise.resolve(analyzer.parseTemplateCode(templateCode));
-  if (!AST) throw new Error(`Couldn't analyze templateCode "${templateCode}"`);
+  const AST = analyzer.parseCode(templateCode);
+  if (!AST) throw new Error(`Couldn't analyze code!`);
 
-  const visitFn: VisitFn = analyzer.customVisit ?? visit;
-  const output: ComponentUsage[] = [];
+  const visitFn: VisitFn = analyzer.visit ?? visit;
 
-  await Promise.resolve(
-    visitFn(AST, async (node) => {
-      const usageData = await Promise.resolve(analyzer.extract(node));
-      if (usageData) {
-        output.push({
-          ...usageData,
-          fragment: deindent(
-            templateCode
-              .split('\n')
-              .slice(usageData.lines.start - 1, usageData.lines.end)
-              .join('\n'),
-          ),
-          file: '',
-        });
-      }
-    }),
-  );
+  visitFn(AST, (node: any) => {
+    const shouldExtract = analyzer.shouldExtract(node);
+    if (!shouldExtract) return;
+
+    const name: string = analyzer.extractName(node);
+
+    const attributesUsage: AttributeUsage[] = isFunction(
+      analyzer.extractAttributes,
+    )
+      ? analyzer.extractAttributes(node)
+      : [];
+
+    const slotsUsage: SlotUsage[] = isFunction(analyzer.extractSlots)
+      ? analyzer.extractSlots(node)
+      : [];
+
+    const eventsUsage: EventUsage[] = isFunction(analyzer.extractEvents)
+      ? analyzer.extractEvents(node)
+      : [];
+
+    const lines: Lines = isFunction(analyzer.extractLines)
+      ? analyzer.extractLines(node)
+      : { start: 0, end: 0 };
+
+    output.push({
+      component: name,
+      attributes: attributesUsage,
+      slots: slotsUsage,
+      events: eventsUsage,
+      lines,
+      fragment: deindent(
+        templateCode
+          .split('\n')
+          .slice(lines.start - 1, lines.end)
+          .join('\n'),
+      ),
+    } as ComponentUsage);
+  });
 
   return output;
 }

@@ -1,4 +1,4 @@
-import { strictEqual, ok } from 'node:assert';
+import { ok, strictEqual } from 'node:assert';
 import { describe, it } from 'node:test';
 import { analyzeCode } from '../../engine/analyze-code';
 import { angularAnalyzer } from './angular.analyzer';
@@ -9,7 +9,7 @@ describe('Angular analyzer', () => {
       const template =
         '<test-button variant="primary" size="large">Click me</test-button>';
 
-      const result = await analyzeCode(template, angularAnalyzer);
+      const result = analyzeCode(template, angularAnalyzer);
 
       strictEqual(result?.length, 1);
       strictEqual(result[0].component, 'test-button');
@@ -32,7 +32,7 @@ describe('Angular analyzer', () => {
       const template =
         '<test-input disabled required readonly>Input field</test-input>';
 
-      const result = await analyzeCode(template, angularAnalyzer);
+      const result = analyzeCode(template, angularAnalyzer);
 
       strictEqual(result?.length, 1);
       strictEqual(result[0].component, 'test-input');
@@ -51,7 +51,7 @@ describe('Angular analyzer', () => {
       const template =
         '<test-button [variant]="buttonVariant" [disabled]="isDisabled">Submit</test-button>';
 
-      const result = await analyzeCode(template, angularAnalyzer);
+      const result = analyzeCode(template, angularAnalyzer);
 
       strictEqual(result?.length, 1);
       strictEqual(result[0].component, 'test-button');
@@ -74,7 +74,7 @@ describe('Angular analyzer', () => {
       const template =
         '<test-badge [count]="items.length + 1" [visible]="items.length > 0">Badge</test-badge>';
 
-      const result = await analyzeCode(template, angularAnalyzer);
+      const result = analyzeCode(template, angularAnalyzer);
 
       strictEqual(result?.length, 1);
       strictEqual(result[0].component, 'test-badge');
@@ -97,7 +97,7 @@ describe('Angular analyzer', () => {
       const template =
         '<test-card variant="outlined" [elevated]="isElevated" size="medium">Content</test-card>';
 
-      const result = await analyzeCode(template, angularAnalyzer);
+      const result = analyzeCode(template, angularAnalyzer);
 
       strictEqual(result?.length, 1);
       strictEqual(result[0].component, 'test-card');
@@ -128,7 +128,7 @@ describe('Angular analyzer', () => {
       const template =
         '<test-card><div>This is default slot content</div></test-card>';
 
-      const result = await analyzeCode(template, angularAnalyzer);
+      const result = analyzeCode(template, angularAnalyzer);
 
       // Filter for just the web component
       const webComponent = result?.find(
@@ -148,7 +148,7 @@ describe('Angular analyzer', () => {
       const template =
         '<test-dialog><h2 slot="header">Dialog Title</h2><p slot="content">Dialog content goes here</p><div slot="footer"><button>Cancel</button><button>OK</button></div></test-dialog>';
 
-      const result = await analyzeCode(template, angularAnalyzer);
+      const result = analyzeCode(template, angularAnalyzer);
 
       // Filter for just the web component
       const webComponent = result?.find(
@@ -180,7 +180,7 @@ describe('Angular analyzer', () => {
       const template =
         '<test-tabs><div slot="tab-content">Tab content</div></test-tabs>';
 
-      const result = await analyzeCode(template, angularAnalyzer);
+      const result = analyzeCode(template, angularAnalyzer);
 
       // Filter for just the web component
       const webComponent = result?.find(
@@ -200,7 +200,7 @@ describe('Angular analyzer', () => {
       const template =
         '<test-wrapper><ng-content select="header"></ng-content><ng-content></ng-content></test-wrapper>';
 
-      const result = await analyzeCode(template, angularAnalyzer);
+      const result = analyzeCode(template, angularAnalyzer);
 
       // Filter for just the web component
       const webComponent = result?.find(
@@ -214,7 +214,7 @@ describe('Angular analyzer', () => {
       const template =
         '<test-list><div class="ngfor-item" slot="item">{{ item.name }}</div></test-list>';
 
-      const result = await analyzeCode(template, angularAnalyzer);
+      const result = analyzeCode(template, angularAnalyzer);
 
       // Filter for just the web component
       const webComponent = result?.find(
@@ -232,7 +232,7 @@ describe('Angular analyzer', () => {
       const template =
         '<test-modal><div class="header-content" slot="header">Modal Header</div><div class="footer-content" slot="footer">Modal Footer</div></test-modal>';
 
-      const result = await analyzeCode(template, angularAnalyzer);
+      const result = analyzeCode(template, angularAnalyzer);
 
       // Filter for just the web component
       const webComponent = result?.find(
@@ -260,7 +260,7 @@ describe('Angular analyzer', () => {
       const template =
         '<test-header title="pageTitle" fixed><div slot="actions"><test-button variant="primary">Save</test-button></div></test-header><test-main><test-card [elevated]="true"><h3 slot="title">Card Title</h3><p>Card content</p></test-card></test-main>';
 
-      const result = await analyzeCode(template, angularAnalyzer);
+      const result = analyzeCode(template, angularAnalyzer);
 
       // Filter for web components only
       const webComponents = result?.filter((comp) =>
@@ -292,7 +292,7 @@ describe('Angular analyzer', () => {
     it('should handle empty components', async () => {
       const template = '<test-divider></test-divider>';
 
-      const result = await analyzeCode(template, angularAnalyzer);
+      const result = analyzeCode(template, angularAnalyzer);
 
       strictEqual(result?.length, 1);
       strictEqual(result[0].component, 'test-divider');
@@ -303,7 +303,7 @@ describe('Angular analyzer', () => {
     it('should extract line numbers correctly', async () => {
       const template = '<div>\n<test-button>Test</test-button>\n</div>';
 
-      const result = await analyzeCode(template, angularAnalyzer);
+      const result = analyzeCode(template, angularAnalyzer);
 
       // Filter for just the web component
       const webComponent = result?.find(
@@ -335,7 +335,7 @@ export class TestComponent {
 }
       `;
 
-      const result = await analyzeCode(componentCode, angularAnalyzer);
+      const result = analyzeCode(componentCode, angularAnalyzer);
 
       strictEqual(result?.length, 1);
       strictEqual(result[0].component, 'test-button');

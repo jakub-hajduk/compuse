@@ -1,4 +1,4 @@
-import { strictEqual, ok } from 'node:assert';
+import { ok, strictEqual } from 'node:assert';
 import { describe, it } from 'node:test';
 import { analyzeCode } from '../../engine/analyze-code';
 import { vueAnalyzer } from './vue.analyzer';
@@ -12,7 +12,7 @@ describe('Vue analyzer', () => {
 </template>
       `;
 
-      const result = await analyzeCode(template, vueAnalyzer);
+      const result = analyzeCode(template, vueAnalyzer);
 
       strictEqual(result?.length, 1);
       strictEqual(result[0].component, 'test-button');
@@ -38,7 +38,7 @@ describe('Vue analyzer', () => {
 </template>
       `;
 
-      const result = await analyzeCode(template, vueAnalyzer);
+      const result = analyzeCode(template, vueAnalyzer);
 
       strictEqual(result?.length, 1);
       strictEqual(result[0].component, 'test-input');
@@ -60,7 +60,7 @@ describe('Vue analyzer', () => {
 </template>
       `;
 
-      const result = await analyzeCode(template, vueAnalyzer);
+      const result = analyzeCode(template, vueAnalyzer);
 
       strictEqual(result?.length, 1);
       strictEqual(result[0].component, 'test-button');
@@ -80,7 +80,7 @@ describe('Vue analyzer', () => {
 </template>
       `;
 
-      const result = await analyzeCode(template, vueAnalyzer);
+      const result = analyzeCode(template, vueAnalyzer);
 
       strictEqual(result?.length, 1);
       strictEqual(result[0].component, 'test-badge');
@@ -100,7 +100,7 @@ describe('Vue analyzer', () => {
 </template>
       `;
 
-      const result = await analyzeCode(template, vueAnalyzer);
+      const result = analyzeCode(template, vueAnalyzer);
 
       strictEqual(result?.length, 1);
       strictEqual(result[0].component, 'test-card');
@@ -136,7 +136,7 @@ describe('Vue analyzer', () => {
 </template>
       `;
 
-      const result = await analyzeCode(template, vueAnalyzer);
+      const result = analyzeCode(template, vueAnalyzer);
 
       // Filter for just the web component
       const webComponent = result?.find(
@@ -166,7 +166,7 @@ describe('Vue analyzer', () => {
 </template>
       `;
 
-      const result = await analyzeCode(template, vueAnalyzer);
+      const result = analyzeCode(template, vueAnalyzer);
 
       // Filter for just the web component
       const webComponent = result?.find(
@@ -203,7 +203,7 @@ describe('Vue analyzer', () => {
 </template>
       `;
 
-      const result = await analyzeCode(template, vueAnalyzer);
+      const result = analyzeCode(template, vueAnalyzer);
 
       // Filter for just the web component
       const webComponent = result?.find(
@@ -237,7 +237,7 @@ describe('Vue analyzer', () => {
 </template>
       `;
 
-      const result = await analyzeCode(template, vueAnalyzer);
+      const result = analyzeCode(template, vueAnalyzer);
 
       // Filter for just the web component
       const webComponent = result?.find(
@@ -261,7 +261,7 @@ describe('Vue analyzer', () => {
 </template>
       `;
 
-      const result = await analyzeCode(template, vueAnalyzer);
+      const result = analyzeCode(template, vueAnalyzer);
 
       // Filter for just the web component
       const webComponent = result?.find(
@@ -285,7 +285,7 @@ describe('Vue analyzer', () => {
 </template>
       `;
 
-      const result = await analyzeCode(template, vueAnalyzer);
+      const result = analyzeCode(template, vueAnalyzer);
 
       // Filter for just the web component
       const webComponent = result?.find(
@@ -318,7 +318,7 @@ describe('Vue analyzer', () => {
 </template>
       `;
 
-      const result = await analyzeCode(template, vueAnalyzer);
+      const result = analyzeCode(template, vueAnalyzer);
 
       // Filter for just the web component
       const webComponent = result?.find(
@@ -352,7 +352,7 @@ describe('Vue analyzer', () => {
 </template>
       `;
 
-      const result = await analyzeCode(template, vueAnalyzer);
+      const result = analyzeCode(template, vueAnalyzer);
 
       // Filter for web components only
       const webComponents = result?.filter((comp) =>
@@ -388,7 +388,7 @@ describe('Vue analyzer', () => {
 </template>
       `;
 
-      const result = await analyzeCode(template, vueAnalyzer);
+      const result = analyzeCode(template, vueAnalyzer);
 
       strictEqual(result?.length, 1);
       strictEqual(result[0].component, 'test-divider');
@@ -405,7 +405,7 @@ describe('Vue analyzer', () => {
 </template>
       `;
 
-      const result = await analyzeCode(template, vueAnalyzer);
+      const result = analyzeCode(template, vueAnalyzer);
 
       // Filter for just the web component
       const webComponent = result?.find(
@@ -439,7 +439,7 @@ const message = ref('Hello Vue!')
 </style>
       `;
 
-      const result = await analyzeCode(template, vueAnalyzer);
+      const result = analyzeCode(template, vueAnalyzer);
 
       strictEqual(result?.length, 1);
       strictEqual(result[0].component, 'test-component');
@@ -480,7 +480,7 @@ const message = ref('Hello Vue!')
 </template>
       `;
 
-      const result = await analyzeCode(template, vueAnalyzer);
+      const result = analyzeCode(template, vueAnalyzer);
 
       // Filter for web components only
       const webComponents = result?.filter((comp) =>

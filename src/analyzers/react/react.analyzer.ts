@@ -1,53 +1,74 @@
 import { generate } from '@babel/generator';
 import { parse as babelParse } from '@babel/parser';
 import _traverse, { type NodePath } from '@babel/traverse';
-import type { JSXAttribute } from '@babel/types';
+import {
+  type File,
+  type JSXAttribute,
+  type JSXElement,
+  type Node,
+  isJSXAttribute,
+  isJSXIdentifier,
+} from '@babel/types';
+import { get } from '../../utils/get';
 import type { Analyzer, AttributeUsage, SlotUsage } from '../analyzer';
 
 const traverse = (_traverse as any).default || _traverse;
 
-export const reactAnalyzer: Analyzer<any> = {
+export const reactAnalyzer: Analyzer<JSXElement> = {
   name: 'ReactAnalyzer',
-  match: (path: string) =>
-    path.endsWith('.jsx') ||
-    path.endsWith('.tsx') ||
-    path.endsWith('.js') ||
-    path.endsWith('.ts'),
-  getElementName: (node: any) => node.openingElement.name.name,
-  parseTemplateCode(code: string) {
+
+  shouldAnalyze() {
+    return true;
+  },
+
+  parseCode(code: string) {
     return babelParse(code, {
       sourceType: 'module',
       plugins: ['jsx', 'typescript'],
       errorRecovery: true,
     });
   },
-  customVisit(node, callback) {
+
+  visit(node, callback) {
     traverse(node, {
       JSXElement(path: NodePath) {
-        callback(path.node);
+        callback(path.node as JSXElement);
       },
     });
   },
-  extract(node) {
-    const component = node.openingElement.name.name;
 
+  shouldExtract(node) {
+    return true;
+  },
+
+  extractName(node) {
+    return isJSXIdentifier(node.openingElement.name)
+      ? node.openingElement.name.name
+      : '';
+  },
+
+  extractAttributes(node) {
     const attributes: AttributeUsage[] = [];
-    const slots: SlotUsage[] = [];
 
-    // Attributes
     for (const attribute of node.openingElement.attributes) {
       attributes.push({
-        name: attribute.name.name,
+        name: get(attribute, 'name.name', `(COULDN'T RESOLVE NAME)`),
         value:
-          attribute.value?.value || generate(attribute.value?.expression)?.code,
-        computed: !attribute.value?.value,
+          get(attribute, 'value.value') ||
+          generate(get(attribute, 'value.expression')).code,
+        computed: !get(attribute, 'value.value'),
       });
     }
 
-    // Slots
+    return attributes;
+  },
+
+  extractSlots(node) {
+    const slots: SlotUsage[] = [];
+
     if (node.children) {
       for (const children of node.children) {
-        const slotProp = children.openingElement?.attributes?.find(
+        const slotProp = get(children, 'openingElement.attributes', []).find(
           (prop: JSXAttribute) => prop.name.name === 'slot',
         );
         let name = slotProp?.value?.value;
@@ -66,14 +87,13 @@ export const reactAnalyzer: Analyzer<any> = {
       }
     }
 
+    return slots;
+  },
+
+  extractLines(node) {
     return {
-      component,
-      attributes,
-      slots,
-      lines: {
-        start: node.loc.start.line,
-        end: node.loc.end.line,
-      },
+      start: get(node, 'loc.start.line'),
+      end: get(node, 'loc.end.line'),
     };
   },
 };

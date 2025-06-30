@@ -1,27 +1,20 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import type { Analyzer, ComponentUsage } from '../analyzers/analyzer';
+import type { Analyzer, FileAnalyzeResult } from '../analyzers/analyzer';
 import { analyzeCode } from './analyze-code';
 
-export async function analyzeFile(
+export function analyzeFile(
   path: string,
   analyzer: Analyzer<any>,
-): Promise<ComponentUsage[]> {
+): FileAnalyzeResult {
   const filePath = resolve(path);
   const code = readFileSync(filePath, 'utf8');
-  const usages = await analyzeCode(code, analyzer);
-  if (!usages) throw new Error(`Couldn't analyze file "${path}"`);
+  const componentUsages = analyzeCode(code, analyzer);
 
-  const output: ComponentUsage[] = [];
+  if (!componentUsages) throw new Error(`Couldn't analyze file "${path}"`);
 
-  for (const usage of usages) {
-    const fullUsage: ComponentUsage = {
-      ...usage,
-      file: filePath,
-    };
-
-    output.push(fullUsage);
-  }
-
-  return output;
+  return {
+    usages: componentUsages,
+    file: filePath,
+  };
 }
