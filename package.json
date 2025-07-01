@@ -1,5 +1,5 @@
 {
-  "name": "comupse",
+  "name": "compuse",
   "version": "0.0.0",
   "type": "module",
   "description": "Library for analyzing components usage in various codebases usign any frameworks.",
