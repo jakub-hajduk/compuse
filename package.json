@@ -1,6 +1,6 @@
 {
   "name": "compuse",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "description": "Library for analyzing components usage in various codebases usign any frameworks.",
   "scripts": {
@@ -12,7 +12,13 @@
     "fix": "biome check --fix",
     "release": "pnpm run fix && pnpm run build && changelogen --release --push --publish"
   },
-  "keywords": ["components", "usage", "angular", "vue", "react"],
+  "keywords": [
+    "components",
+    "usage",
+    "angular",
+    "vue",
+    "react"
+  ],
   "author": {
     "name": "Jakub Hajduk",
     "email": "devhajduk@gmail.com"
@@ -46,7 +52,9 @@
     "tsx": "^4.19.2",
     "typescript": "^5.7.3"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "module": "./dist/index.js",
   "main": "./dist/index.cjs",
   "exports": {
