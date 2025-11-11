@@ -1,5 +1,5 @@
 import type { ASTNode, ElementNode } from 'fragmint';
-import { jsx } from 'fragmint/jsx';
+import { html } from 'fragmint/html';
 import type {
   Analyzer,
   AttributeUsage,
@@ -7,12 +7,10 @@ import type {
   SlotUsage,
 } from '../../engine/types';
 
-const RE_EVENT = /^on[A-Z]/;
+export const htmlAnalyzer: Analyzer = {
+  name: 'htmlAnalyzer',
 
-export const reactAnalyzer: Analyzer = {
-  name: 'reactAnalyzer',
-
-  parsePlugin: jsx,
+  parsePlugin: html,
 
   extractName(node: ElementNode) {
     return node.tag;
@@ -23,7 +21,6 @@ export const reactAnalyzer: Analyzer = {
     if (node.type !== 'Element') return [];
 
     for (const { name, value, computed } of node.attributes) {
-      if (RE_EVENT.test(name)) continue;
       attributes.push({
         name,
         value,
@@ -39,7 +36,7 @@ export const reactAnalyzer: Analyzer = {
     const events: EventUsage[] = [];
 
     for (const { name } of node.attributes) {
-      if (!RE_EVENT.test(name)) continue;
+      if (!name.startsWith('on')) continue;
       events.push({
         name,
       });

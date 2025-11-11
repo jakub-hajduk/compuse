@@ -1,18 +1,18 @@
 # Compuse
 
-Welcome to Compuse! This is a powerful and flexible library designed to analyze component usage across various codebases, regardless of the framework you're using. Whether you're working with Angular, React, Vue, or Svelte, Compuse provides the tools you need to understand how your components are being utilized.
+Compuse is a library for analyzing component usage in your codebase. It provides a unified interface to extract detailed information about how components are used, regardless of whether you're working with React, Vue, Angular, Svelte, Lit-HTML, or plain HTML.
 
 ## Features
 
-- **Framework Agnostic:** Analyze component usage in any framework.
-- **Extensible:** Create your own analyzers to support custom frameworks or specific analysis needs.
+- **Framework Agnostic:** Analyze component usage across multiple frameworks with a single API.
 - **Detailed Analysis:** Extract component names, attributes, slots, and events.
 - **Code Fragments:** Get the exact code fragment for each component usage.
 - **Line Numbers:** Pinpoint the exact location of component usage in your code.
+- **Extensible:** Easily create your own analyzers to support custom frameworks or specific analysis needs.
 
 ## Installation
 
-You can install Compuse using your favorite package manager:
+Install Compuse using your favorite package manager:
 
 ```bash
 # pnpm
@@ -27,130 +27,113 @@ yarn add compuse
 
 ## Usage
 
-Compuse is designed to be straightforward to use. The core of the library is the `analyzeCode` function, which takes your code and an analyzer as input and returns an array of component usages.
+The core of Compuse is the `analyzeCode` generator function. It takes your code and a framework-specific analyzer as input and yields detailed `ComponentUsage` objects.
 
-### `analyzeCode` Function
+### `analyzeCode(code, analyzer, options)`
 
-The `analyzeCode` function is the main entry point for analyzing your code. It takes two arguments:
+-   `code` (string): The source code to analyze.
+-   `analyzer` (Analyzer): The framework-specific analyzer to use.
+-   `options` (AnalyzeOptions): Optional configuration.
+    -   `components` (string[]): A list of component tags to exclusively analyze.
 
-- `code` (string): The code you want to analyze.
-- `analyzer` (Analyzer): An analyzer object that defines how to parse and extract information from the code.
-
-Here's a simple example of how to use it:
+### Example: Analyzing a React Component
 
 ```typescript
-import { analyzeCode, vueAnalyzer } from 'compuse';
+import { analyzeCode, reactAnalyzer } from 'compuse';
 
 const code = `
-  <template>
-    <MyComponent name="World" />
-  </template>
+  function App() {
+    return (
+      <MyComponent
+        id="my-id"
+        prop={someValue}
+        onClick={handleClick}
+      >
+        <div slot="header">Header</div>
+        Default Content
+      </MyComponent>
+    );
+  }
 `;
 
-const usages = analyzeCode(code, vueAnalyzer);
-
-console.log(usages);
+for (const usage of analyzeCode(code, reactAnalyzer)) {
+  console.log(usage);
+}
 ```
 
 This will output:
 
 ```json
-[
-  {
-    "component": "MyComponent",
-    "attributes": [
-      {
-        "name": "name",
-        "value": "World",
-        "computed": false
-      }
-    ],
-    "slots": [],
-    "events": [],
-    "lines": {
-      "start": 3,
-      "end": 3
-    },
-    "fragment": "<MyComponent name=\"World\" />"
-  }
-]
+{
+  "component": "MyComponent",
+  "attributes": [
+    { "name": "id", "value": "my-id", "computed": false },
+    { "name": "prop", "value": "someValue", "computed": true }
+  ],
+  "events": [
+    { "name": "onClick" }
+  ],
+  "slots": [
+    { "name": "slot", "fragment": "<div slot=\"header\">Header</div>" },
+    { "name": "default", "fragment": "Default Content" }
+  ],
+  "fragment": "<MyComponent id=\"my-id\" prop={someValue} onClick={handleClick}>\n  <div slot=\"header\">Header</div>\n  Default Content\n</MyComponent>",
+  "lines": { "start": 3, "end": 10 }
+}
 ```
 
-### `Analyzer` Interface
+### Supported Analyzers
 
-The `Analyzer` interface is the heart of Compuse's extensibility. It allows you to define how to analyze code for a specific framework or use case. Here's a breakdown of the interface:
+Compuse comes with built-in analyzers for popular frameworks:
 
-**`name`**
+-   `angularAnalyzer`
+-   `htmlAnalyzer`
+-   `litHtmlAnalyzer`
+-   `reactAnalyzer`
+-   `svelteAnalyzer`
+-   `vueAnalyzer`
 
-type: `string`
+### Creating a Custom Analyzer
 
-The name of the analyzer.
+You can create a custom analyzer by implementing the `Analyzer` interface. This is useful for supporting custom frameworks or extending the functionality of existing analyzers.
 
-**`extractTemplate`**
+```typescript
+import type { Analyzer } from 'compuse';
+import { parse } from 'fragmint';
+import { customParsePlugin } from './custom-parse-plugin';
 
-type: `(code: string) => string`
+export const customAnalyzer: Analyzer = {
+  name: 'customAnalyzer',
+  parsePlugin: customParsePlugin, // A fragmint parse plugin
 
-(Optional) A function to extract the template from a code string. This is useful for frameworks like Vue where the template is embedded in a single file component.
+  extractName(node) {
+    // Logic to extract the component name from an AST node
+    return node.tag;
+  },
 
-**`parseCode`**
+  extractAttributes(node) {
+    // Logic to extract attributes
+    return node.attributes || [];
+  },
 
-type: `(code: string) => any`
-
-A function that parses the code into an Abstract Syntax Tree (AST).
-
-**`shouldAnalyze`**
-
-type: `(context: PackageContext) => boolean`
-
-(Optional) A function that determines whether the analyzer should process a given file based on its context (e.g., `package.json`, file path).
-
-**`visit`**
-
-type: `VisitFn<any>`
-
-(Optional) A custom function for traversing the AST.
-
-**`shouldExtract`**
-
-type: `(node: NODE) => boolean`
-
-A function that determines whether to extract component usage information from a given AST node.
-
-**`extractName`**
-
-type: `(node: NODE) => string`
-
-A function that extracts the name of the component from an AST node.
-
-**`extractAttributes`**
-
-type: `(node: NODE) => AttributeUsage[]`
-
-(Optional) A function that extracts attributes from an AST node.
-
-**`extractSlots`**
-
-type: `(node: NODE) => SlotUsage[]`
-
-(Optional) A function that extracts slot usage information from an AST node.
-
-**`extractEvents`**
-
-type: `(node: NODE) => EventUsage[]`
-
-(Optional) A function that extracts event usage information from an AST node.
-
-**`extractLines`**
-
-type: `(node: NODE) => Lines`
-
-A function that extracts the start and end line numbers of the component usage.
-
-By implementing this interface, you can create your own analyzers to support any framework or custom analysis needs you may have.
+  extractEvents(node) {
+    // Logic to extract events
+    return (node.attributes || []).filter(attr => attr.name.startsWith('on-'));
+  },
+  
+  extractSlots(node) {
+    // Logic to extract slots
+    return (node.children || []).map(child => ({
+      name: child.attributes?.find(attr => attr.name === 'slot')?.value || 'default',
+      fragment: child.raw,
+    }));
+  },
+};
+```
 
 ## Contributing
 
-We welcome contributions! Please see our `CONTRIBUTING.md` for more information.
+Contributions are welcome! Please see our `CONTRIBUTING.md` for more information.
 
 ## License
 

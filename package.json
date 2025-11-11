@@ -4,10 +4,10 @@
   "type": "module",
   "description": "Library for analyzing components usage in various codebases usign any frameworks.",
   "scripts": {
-    "dev": "pkgroll --watch",
-    "build": "pkgroll",
+    "dev": "tsdown --watch",
+    "build": "tsdown",
     "test": "tsx ./scripts/test-runner.ts",
-    "test:watch": "tsx ./scripts/test-runner.ts",
+    "test:watch": "tsx ./scripts/test-runner.ts watch",
     "check": "biome check",
     "fix": "biome check --fix",
     "release": "pnpm run fix && pnpm run build && changelogen --release --push --publish"
@@ -17,7 +17,12 @@
     "usage",
     "angular",
     "vue",
-    "react"
+    "react",
+    "svelte",
+    "lit-html",
+    "web components",
+    "zero dependency",
+    "template"
   ],
   "author": {
     "name": "Jakub Hajduk",
@@ -28,45 +33,56 @@
     "url": "https://github.com/jakub-hajduk/compuse.git"
   },
   "license": "ISC",
-  "peerDependencies": {
-    "@angular/compiler": "*",
-    "@babel/parser": "*",
-    "@babel/traverse": "*",
-    "@vue/compiler-dom": "*",
-    "@vue/compiler-sfc": "*",
-    "svelte": "*",
-    "vite": "*"
-  },
   "dependencies": {
-    "@babel/generator": "^7.27.1",
-    "get-wild": "^3.0.2"
+    "fragmint": "^0.0.3"
   },
   "devDependencies": {
-    "@babel/types": "^7.27.1",
     "@biomejs/biome": "1.9.4",
     "@types/node": "^22.13.4",
     "changelogen": "^0.5.7",
     "dotenv": "^16.4.7",
     "glob": "^11.0.1",
-    "pkgroll": "^2.10.0",
+    "tsdown": "^0.16.1",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3"
   },
-  "files": [
-    "dist"
-  ],
-  "module": "./dist/index.js",
+  "files": ["dist"],
+  "module": "./dist/index.mjs",
   "main": "./dist/index.cjs",
   "exports": {
     ".": {
-      "import": {
-        "default": "./dist/index.js",
-        "types": "./dist/index.d.ts"
-      },
-      "require": {
-        "default": "./dist/index.cjs",
-        "types": "./dist/index.d.cts"
-      }
-    }
-  }
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./analyze": {
+      "import": "./dist/analyze.mjs",
+      "require": "./dist/analyze.cjs"
+    },
+    "./angular": {
+      "import": "./dist/angular.mjs",
+      "require": "./dist/angular.cjs"
+    },
+    "./html": {
+      "import": "./dist/html.mjs",
+      "require": "./dist/html.cjs"
+    },
+    "./lit": {
+      "import": "./dist/lit.mjs",
+      "require": "./dist/lit.cjs"
+    },
+    "./react": {
+      "import": "./dist/react.mjs",
+      "require": "./dist/react.cjs"
+    },
+    "./svelte": {
+      "import": "./dist/svelte.mjs",
+      "require": "./dist/svelte.cjs"
+    },
+    "./vue": {
+      "import": "./dist/vue.mjs",
+      "require": "./dist/vue.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "types": "./dist/index.d.cts"
 }

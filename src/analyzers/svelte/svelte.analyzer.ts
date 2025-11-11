@@ -1,5 +1,5 @@
 import type { ASTNode, ElementNode } from 'fragmint';
-import { jsx } from 'fragmint/jsx';
+import { svelte } from 'fragmint/svelte';
 import type {
   Analyzer,
   AttributeUsage,
@@ -7,12 +7,12 @@ import type {
   SlotUsage,
 } from '../../engine/types';
 
-const RE_EVENT = /^on[A-Z]/;
+const RE_EVENT = /^on:/;
 
-export const reactAnalyzer: Analyzer = {
-  name: 'reactAnalyzer',
+export const svelteAnalyzer: Analyzer = {
+  name: 'svelteAnalyzer',
 
-  parsePlugin: jsx,
+  parsePlugin: svelte,
 
   extractName(node: ElementNode) {
     return node.tag;

@@ -11,6 +11,8 @@ const files = glob.sync('**/*.test.ts', {
   ignore: 'node_modules/**',
 });
 
-run({ files, concurrency: true, watch: true })
+const args = process.argv.slice(2);
+
+run({ files, concurrency: true, watch: args.includes('watch') })
   .compose(spec)
   .pipe(process.stdout);

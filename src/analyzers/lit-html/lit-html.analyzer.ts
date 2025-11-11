@@ -1,5 +1,5 @@
 import type { ASTNode, ElementNode } from 'fragmint';
-import { jsx } from 'fragmint/jsx';
+import { lit } from 'fragmint/lit';
 import type {
   Analyzer,
   AttributeUsage,
@@ -7,12 +7,13 @@ import type {
   SlotUsage,
 } from '../../engine/types';
 
-const RE_EVENT = /^on[A-Z]/;
+const RE_ATTRIBUTE = /^\./;
+const RE_EVENT = /^@/;
 
-export const reactAnalyzer: Analyzer = {
-  name: 'reactAnalyzer',
+export const litHtmlAnalyzer: Analyzer = {
+  name: 'litHtmlAnalyzer',
 
-  parsePlugin: jsx,
+  parsePlugin: lit,
 
   extractName(node: ElementNode) {
     return node.tag;
@@ -27,7 +28,7 @@ export const reactAnalyzer: Analyzer = {
       attributes.push({
         name,
         value,
-        computed: !!computed,
+        computed: !!computed || RE_ATTRIBUTE.test(name),
       });
     }
 

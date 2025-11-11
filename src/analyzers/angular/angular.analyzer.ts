@@ -1,142 +1,79 @@
-import {
-  type TmplAstBoundAttribute,
-  type TmplAstTextAttribute,
-  parseTemplate,
-} from '@angular/compiler';
-import { get } from 'get-wild';
-import { ScriptTarget, createSourceFile } from 'typescript';
-import type { Analyzer, AttributeUsage, SlotUsage } from '../analyzer';
+import type { ASTNode, ElementNode } from 'fragmint';
+import { angular } from 'fragmint/angular';
+import type {
+  Analyzer,
+  AttributeUsage,
+  EventUsage,
+  SlotUsage,
+} from '../../engine/types';
 
-export function mightBeAngularTemplate(code: string): boolean {
-  const isProbablyTypeScript = /^(import|export|@Component|class|\s)*\s/.test(
-    code,
-  );
-  const hasComponentDecorator = /@Component\s*\(\s*{[\s\S]*?}\s*\)/.test(code);
-  const hasClassDeclaration = /\bexport\s+class\s+\w+/.test(code);
+const RE_ATTRIBUTE =
+  /^(?:\[\([^)]+\)\]|\[[^\]]+\]|\*[A-Za-z_][\w-]*|[#@]?[-\w]+)$/;
+const RE_EVENT = /^\([^)]+\)$/;
 
-  const looksLikeHtml = /<\/?[a-zA-Z][^>]*>/.test(code);
-  const looksLikeNgSyntax = /\*ngIf=|\[\w+\]=|\(\w+\)=|{{[^}]+}}/.test(code);
-
-  return (
-    !isProbablyTypeScript &&
-    !hasComponentDecorator &&
-    !hasClassDeclaration &&
-    (looksLikeHtml || looksLikeNgSyntax)
-  );
-}
-
-const tryParseTemplate = (template: string) => {
-  try {
-    const ast = parseTemplate(template, '');
-    if (ast.errors?.length) return {};
-    return { children: ast.nodes };
-  } catch {}
-};
-
-export const angularAnalyzer: Analyzer<any> = {
+export const angularAnalyzer: Analyzer = {
   name: 'angularAnalyzer',
 
-  shouldAnalyze() {
-    return true;
+  parsePlugin: angular,
+
+  extractName(node: ElementNode) {
+    return node.tag;
   },
 
-  extractTemplate(code: string) {
-    if (mightBeAngularTemplate(code)) return code;
-
-    const componentAst = createSourceFile(
-      'webc-usage.component.ts',
-      code,
-      ScriptTarget.Latest,
-      true,
-    );
-
-    const elems = get(
-      componentAst,
-      'statements.*.modifiers.*.expression.arguments.*.properties.*',
-    );
-
-    const templateProperty = elems.find(
-      (propertyDefinition: any) =>
-        propertyDefinition?.name?.escapedText === 'template',
-    );
-
-    if (!templateProperty) return;
-
-    return templateProperty.initializer?.rawText || '';
-  },
-
-  parseCode(code: string) {
-    return tryParseTemplate(code);
-  },
-
-  shouldExtract(node) {
-    return node.name;
-  },
-
-  extractName(node) {
-    return node.name;
-  },
-
-  extractAttributes(node) {
+  extractAttributes(node: ASTNode): AttributeUsage[] {
     const attributes: AttributeUsage[] = [];
+    if (node.type !== 'Element') return [];
 
-    for (const attribute of node.attributes || []) {
-      const name = attribute.name;
-      const value = attribute.value;
+    for (const { name, value, computed } of node.attributes) {
+      if (!RE_ATTRIBUTE.test(name)) continue;
       attributes.push({
         name,
         value,
-        computed: false,
-      });
-    }
-
-    for (const input of node.inputs || []) {
-      const name = input.name;
-      const value = input.value.source;
-
-      attributes.push({
-        name,
-        value,
-        computed: true,
+        computed: !!computed,
       });
     }
 
     return attributes;
   },
 
+  extractEvents(node: ASTNode): EventUsage[] {
+    if (node.type !== 'Element') return [];
+    const events: EventUsage[] = [];
+
+    for (const { name } of node.attributes) {
+      if (!RE_EVENT.test(name)) continue;
+      events.push({
+        name,
+      });
+    }
+
+    return events;
+  },
+
   extractSlots(node) {
     const slots: SlotUsage[] = [];
 
-    for (const child of node.children || []) {
-      const slot =
-        child.attributes?.find(
-          (attr: TmplAstTextAttribute) => attr.name === 'slot',
-        ) ||
-        child.inputs?.find(
-          (attr: TmplAstBoundAttribute) => attr.name === 'slot',
-        );
+    if (node.type === 'Text') {
+      return [
+        {
+          name: 'default',
+          fragment: node.raw,
+        },
+      ];
+    }
 
-      const name = slot?.value || 'default';
-
-      const span = child.sourceSpan;
-      const fragment = child.sourceSpan.start.file.content.slice(
-        span.start.offset,
-        span.end.offset,
+    for (const child of node.children) {
+      if (child.type !== 'Element') return [];
+      const slotAttribute = child.attributes?.find(
+        (attr) => attr.name === 'slot',
       );
 
       slots.push({
-        name,
-        fragment,
+        name: slotAttribute?.name || 'default',
+        fragment: child.raw,
       });
     }
 
     return slots;
-  },
-
-  extractLines(node) {
-    return {
-      start: node.sourceSpan?.start?.line || 0,
-      end: node.sourceSpan?.end?.line || 0,
-    };
   },
 };

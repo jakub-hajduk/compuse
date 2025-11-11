@@ -1,94 +1,78 @@
-import {
-  type AttributeNode,
-  type DirectiveNode,
-  type ElementNode,
-  ElementTypes,
-  NodeTypes,
-} from '@vue/compiler-dom';
-import { parse as vueParse } from '@vue/compiler-sfc';
-import { get } from '../../utils/get';
-import type { Analyzer } from '../analyzer';
-import type { AttributeUsage, SlotUsage } from '../analyzer';
+import type { ASTNode, ElementNode } from 'fragmint';
+import { vue } from 'fragmint/vue';
+import type {
+  Analyzer,
+  AttributeUsage,
+  EventUsage,
+  SlotUsage,
+} from '../../engine/types';
 
-const isDirectiveProp = (
-  node: AttributeNode | DirectiveNode,
-): node is DirectiveNode => node.type === NodeTypes.DIRECTIVE;
-const isAttributeProp = (
-  node: AttributeNode | DirectiveNode,
-): node is AttributeNode => node.type === NodeTypes.ATTRIBUTE;
+const RE_ATTRIBUTE = /^(?:v-bind:|\:)[^\]]+$/;
+const RE_EVENT = /^(?:v-on:|@)[^\]]+$/;
 
-export const vueAnalyzer: Analyzer<ElementNode> = {
-  name: 'VueAnalyzer',
+export const vueAnalyzer: Analyzer = {
+  name: 'vueAnalyzer',
 
-  parseCode(code) {
-    const { descriptor } = vueParse(code);
-    if (!descriptor.template?.ast) throw 'No template found!';
-    return descriptor.template?.ast as any as ElementNode;
+  parsePlugin: vue,
+
+  extractName(node: ElementNode) {
+    return node.tag;
   },
 
-  shouldExtract(node) {
-    return (
-      node.type === NodeTypes.ELEMENT && node.tagType === ElementTypes.COMPONENT
-    );
-  },
-
-  extractName: (node) => node.tag,
-
-  extractAttributes(node) {
+  extractAttributes(node: ASTNode): AttributeUsage[] {
     const attributes: AttributeUsage[] = [];
+    if (node.type !== 'Element') return [];
 
-    if (node.props && node.props.length > 0) {
-      for (const prop of node.props) {
-        if (isAttributeProp(prop)) {
-          attributes.push({
-            name: prop.name,
-            value: prop.value?.content || null,
-            computed: false,
-          });
-        }
-        if (isDirectiveProp(prop)) {
-          attributes.push({
-            name: prop.name,
-            value:
-              prop.exp?.type === NodeTypes.SIMPLE_EXPRESSION
-                ? prop.exp?.content
-                : null,
-            computed: true,
-          });
-        }
-      }
+    for (const { name, value, computed } of node.attributes) {
+      if (RE_EVENT.test(name)) continue;
+      attributes.push({
+        name,
+        value,
+        computed: !!computed || RE_ATTRIBUTE.test(name),
+      });
     }
 
     return attributes;
   },
 
+  extractEvents(node: ASTNode): EventUsage[] {
+    if (node.type !== 'Element') return [];
+    const events: EventUsage[] = [];
+
+    for (const { name } of node.attributes) {
+      if (!RE_EVENT.test(name)) continue;
+      events.push({
+        name,
+      });
+    }
+
+    return events;
+  },
+
   extractSlots(node) {
     const slots: SlotUsage[] = [];
 
-    if (node.children) {
-      for (const children of node.children) {
-        const slotProp = (children as any).props?.find(
-          (prop: any) => prop.name === 'slot',
-        );
-        let name = get(slotProp, 'value.content');
-        const fragment = get(children, 'loc.source');
-        name ??= get(slotProp, 'arg.content');
-        name ??= 'default';
+    if (node.type === 'Text') {
+      return [
+        {
+          name: 'default',
+          fragment: node.raw,
+        },
+      ];
+    }
 
-        slots.push({
-          name,
-          fragment,
-        });
-      }
+    for (const child of node.children) {
+      if (child.type !== 'Element') return [];
+      const slotAttribute = child.attributes?.find(
+        (attr) => attr.name === 'slot',
+      );
+
+      slots.push({
+        name: slotAttribute?.name || 'default',
+        fragment: child.raw,
+      });
     }
 
     return slots;
-  },
-
-  extractLines(node) {
-    return {
-      start: node.loc.start.line,
-      end: node.loc.end.line,
-    };
   },
 };
