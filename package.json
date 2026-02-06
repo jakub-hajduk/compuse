@@ -34,7 +34,8 @@
   },
   "license": "ISC",
   "dependencies": {
-    "fragmint": "^0.0.3"
+    "fragmint": "^0.0.3",
+    "htmlparser2": "^10.0.0"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",

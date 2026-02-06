@@ -1,15 +1,25 @@
-export function deindent(text: string): string {
-  const lines = text.split('\n');
+export function deindent(multiline: string): string {
+  const lines = multiline.replace(/\r\n/g, '\n').split('\n');
 
-  const indentLengths = lines
-    .filter((line) => line.trim().length > 0)
-    .map((line) => line.match(/^(\s*)/)?.at(1)?.length || 0);
+  const indents = lines
+    .filter(line => line.trim() !== '')
+    .map(line => {
+      const match = line.match(/^[ \t]+/);
+      return match ? match[0].length : 0;
+    })
+    .filter(indent => indent > 0);
 
-  const minIndent = Math.min(...indentLengths);
+  if (indents.length === 0) {
+    return multiline;
+  }
+
+  const minIndent = Math.min(...indents);
 
   return lines
-    .map((line) =>
-      line.slice(0, minIndent).trim() === '' ? line.slice(minIndent) : line,
+    .map(line =>
+      line.startsWith(' '.repeat(minIndent)) || line.startsWith('\t'.repeat(minIndent))
+        ? line.slice(minIndent)
+        : line
     )
     .join('\n');
 }

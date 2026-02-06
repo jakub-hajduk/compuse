@@ -49,29 +49,31 @@ export const svelteAnalyzer: Analyzer = {
   },
 
   extractSlots(node) {
-    const slots: SlotUsage[] = [];
+    if (node.type !== 'Element') return [];
 
-    if (node.type === 'Text') {
-      return [
-        {
-          name: 'default',
-          fragment: node.raw,
-        },
-      ];
-    }
+    const slotContentMap: Record<string, string> = {};
 
     for (const child of node.children) {
-      if (child.type !== 'Element') return [];
-      const slotAttribute = child.attributes?.find(
-        (attr) => attr.name === 'slot',
-      );
+      const raw = child.raw?.trim();
+      if (!raw) continue;
 
-      slots.push({
-        name: slotAttribute?.name || 'default',
-        fragment: child.raw,
-      });
+      let slotName = 'default'
+
+      if (child.type === 'Element') {
+        const slotAttribute = child.attributes.find(a => a.name === 'slot');
+        if (slotAttribute) {
+          slotName = slotAttribute.value as string
+        }
+      }
+
+      slotContentMap[slotName] = slotContentMap[slotName]
+        ? `${slotContentMap[slotName]}\n${raw}`
+        : raw;
     }
 
-    return slots;
+    return Object.entries(slotContentMap).map(([name, fragment]) => ({
+      name,
+      fragment,
+    })) as SlotUsage[];
   },
 };
