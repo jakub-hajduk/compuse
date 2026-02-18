@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v0.0.3
+
+[compare changes](https://github.com/jakub-hajduk/compuse/compare/v0.0.2...v0.0.3)
+
+### 💅 Refactors
+
+- Remove external parser ([a967473](https://github.com/jakub-hajduk/compuse/commit/a967473))
+
+### ❤️ Contributors
+
+- Jakub Hajduk <devhajduk@gmail.com>
+
 ## v0.0.2
 
 [compare changes](https://github.com/jakub-hajduk/compuse/compare/v0.0.1...v0.0.2)
